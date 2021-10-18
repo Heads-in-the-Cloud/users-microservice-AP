@@ -2,6 +2,7 @@ package com.ss.utopia.restapi.controllers;
 
 import com.ss.utopia.restapi.dao.UserRepository;
 import com.ss.utopia.restapi.models.User;
+import com.ss.utopia.restapi.services.ResetAutoCounterService;
 
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,9 @@ public class UserController {
 
     @Autowired
     UserRepository userDB;
+
+    @Autowired
+    ResetAutoCounterService resetService;
 
     @GetMapping(path="/{id}")
     public User getUser(@PathVariable int id) throws ResponseStatusException {
@@ -30,6 +34,7 @@ public class UserController {
 
     @PostMapping(path = "")
     public ResponseEntity<?> createUser(@RequestBody User user) {
+        resetService.resetAutoCounter("user");
         return new ResponseEntity<>(userDB.save(user), HttpStatus.OK);
     }
 
@@ -59,6 +64,7 @@ public class UserController {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User could not be found!"));
 
         userDB.delete(user);
+        resetService.resetAutoCounter("user");
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 }

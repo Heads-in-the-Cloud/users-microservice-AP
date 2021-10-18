@@ -2,6 +2,7 @@ package com.ss.utopia.restapi.controllers;
 
 import com.ss.utopia.restapi.dao.UserRoleRepository;
 import com.ss.utopia.restapi.models.UserRole;
+import com.ss.utopia.restapi.services.ResetAutoCounterService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,9 @@ public class UserRoleController {
 
     @Autowired
     UserRoleRepository roleDB;
+
+    @Autowired
+    ResetAutoCounterService resetService;
 
     @GetMapping(path="/{id}")
     public UserRole getUser(@PathVariable int id) throws ResponseStatusException {
@@ -30,6 +34,7 @@ public class UserRoleController {
 
     @PostMapping(path = "")
     public ResponseEntity<?> createUser(@RequestBody UserRole UserRole) {
+        resetService.resetAutoCounter("user_role");
         return new ResponseEntity<>(roleDB.save(UserRole), HttpStatus.OK);
     }
 
@@ -53,6 +58,7 @@ public class UserRoleController {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "UserRole could not be found!"));
 
         roleDB.delete(userRole);
+        resetService.resetAutoCounter("user_role");
         return new ResponseEntity<>(userRole, HttpStatus.OK);
     }
 }
