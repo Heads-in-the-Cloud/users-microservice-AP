@@ -5,8 +5,10 @@ import javax.persistence.*;
 @Entity(name = "user")
 public class User {
 
-    public final static int EMPLOYEE = 0;
-    public final static int TRAVELER = 1;
+    public final static int AGENT = 0;
+    public final static int USER = 1;
+    public final static int GUEST = 2;
+    public final static int ADMIN = 3;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
