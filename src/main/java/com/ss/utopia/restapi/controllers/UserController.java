@@ -4,11 +4,12 @@ import com.ss.utopia.restapi.dao.UserRepository;
 import com.ss.utopia.restapi.models.User;
 import com.ss.utopia.restapi.services.ResetAutoCounterService;
 
-import org.springframework.beans.factory.annotation.*;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path="/users")
@@ -21,21 +22,29 @@ public class UserController {
     ResetAutoCounterService resetService;
 
     @GetMapping(path="/{id}")
-    public User getUser(@PathVariable int id) throws ResponseStatusException {
-        return userDB
+    public ResponseEntity<User> getUser(@PathVariable int id) throws ResponseStatusException {
+        return new ResponseEntity<User>(userDB
             .findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found!"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found!")),
+            HttpStatus.OK
+        );
     }
 
     @GetMapping(path="/all")
-    public Iterable<User> getAllUsers() {
-        return userDB.findAll();
+    public ResponseEntity<Iterable<User>> getAllUsers() {
+        return new ResponseEntity<Iterable<User>>(userDB.findAll(), HttpStatus.OK);
     }
 
     @PostMapping(path = "")
     public ResponseEntity<?> createUser(@RequestBody User user) {
         resetService.resetAutoCounter("user");
-        return new ResponseEntity<>(userDB.save(user), HttpStatus.OK);
+        try {
+            return new ResponseEntity<>(userDB.save(user), HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     @PutMapping(path="/{id}")
@@ -53,8 +62,14 @@ public class UserController {
         user.setFamilyName(userDetails.getFamilyName());
         user.setEmail(userDetails.getEmail());
 
-        User updatedUser = userDB.save(user);
-        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+        try {
+            User updatedUser = userDB.save(user);
+            return new ResponseEntity<>(updatedUser, HttpStatus.NO_CONTENT);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -63,8 +78,14 @@ public class UserController {
             .findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User could not be found!"));
 
-        userDB.delete(user);
-        resetService.resetAutoCounter("user");
-        return new ResponseEntity<>(user, HttpStatus.OK);
+        try {
+            userDB.delete(user);
+            resetService.resetAutoCounter("user");
+            return new ResponseEntity<>(user, HttpStatus.NO_CONTENT);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 }

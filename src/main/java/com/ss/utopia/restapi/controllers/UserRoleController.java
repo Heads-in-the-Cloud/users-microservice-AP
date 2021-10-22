@@ -5,10 +5,11 @@ import com.ss.utopia.restapi.models.UserRole;
 import com.ss.utopia.restapi.services.ResetAutoCounterService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path="/user-roles")
@@ -21,21 +22,29 @@ public class UserRoleController {
     ResetAutoCounterService resetService;
 
     @GetMapping(path="/{id}")
-    public UserRole getUser(@PathVariable int id) throws ResponseStatusException {
-        return roleDB
+    public ResponseEntity<UserRole> getUser(@PathVariable int id) throws ResponseStatusException {
+        return new ResponseEntity<UserRole>(roleDB
             .findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "UserRole not found!"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "UserRole not found!")),
+            HttpStatus.OK
+        );
     }
 
     @GetMapping(path="/all")
-    public Iterable<UserRole> getAllUsers() {
-        return roleDB.findAll();
+    public ResponseEntity<Iterable<UserRole>> getAllUsers() {
+        return new ResponseEntity<Iterable<UserRole>>(roleDB.findAll(), HttpStatus.OK);
     }
 
     @PostMapping(path = "")
     public ResponseEntity<?> createUser(@RequestBody UserRole UserRole) {
         resetService.resetAutoCounter("user_role");
-        return new ResponseEntity<>(roleDB.save(UserRole), HttpStatus.OK);
+        try {
+            return new ResponseEntity<>(roleDB.save(UserRole), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     @PutMapping(path="/{id}")
@@ -47,8 +56,15 @@ public class UserRoleController {
 
         userRole.setName(roleDetails.getName());
 
-        UserRole updatedUser = roleDB.save(userRole);
-        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+        try {
+            UserRole updatedUser = roleDB.save(userRole);
+            return new ResponseEntity<>(updatedUser, HttpStatus.NO_CONTENT);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+
     }
 
     @DeleteMapping("/{id}")
@@ -57,8 +73,14 @@ public class UserRoleController {
             .findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "UserRole could not be found!"));
 
-        roleDB.delete(userRole);
-        resetService.resetAutoCounter("user_role");
-        return new ResponseEntity<>(userRole, HttpStatus.OK);
+        try {
+            roleDB.delete(userRole);
+            resetService.resetAutoCounter("user_role");
+            return new ResponseEntity<>(userRole, HttpStatus.NO_CONTENT);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 }
