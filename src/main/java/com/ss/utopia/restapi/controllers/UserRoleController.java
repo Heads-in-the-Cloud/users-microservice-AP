@@ -25,7 +25,10 @@ public class UserRoleController {
     public ResponseEntity<UserRole> getUser(@PathVariable int id) throws ResponseStatusException {
         return new ResponseEntity<UserRole>(roleDB
             .findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "UserRole not found!")),
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "UserRole not found!")
+            ),
             HttpStatus.OK
         );
     }
@@ -39,11 +42,20 @@ public class UserRoleController {
     public ResponseEntity<?> createUser(@RequestBody UserRole UserRole) {
         resetService.resetAutoCounter("user_role");
         try {
-            return new ResponseEntity<>(roleDB.save(UserRole), HttpStatus.OK);
+            return new ResponseEntity<>(
+                roleDB.save(UserRole),
+                HttpStatus.OK
+            );
         } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+            );
         } catch (DataIntegrityViolationException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+            );
         }
     }
 
@@ -51,18 +63,30 @@ public class UserRoleController {
     public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody UserRole roleDetails) throws ResponseStatusException {
         UserRole userRole = roleDB
             .findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "UserRole not found!")
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "UserRole not found!"
+            )
         );
 
         userRole.setName(roleDetails.getName());
 
         try {
             UserRole updatedUser = roleDB.save(userRole);
-            return new ResponseEntity<>(updatedUser, HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(
+                updatedUser,
+                HttpStatus.NO_CONTENT
+            );
         } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+            );
         } catch (DataIntegrityViolationException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+            );
         }
 
     }
@@ -71,16 +95,28 @@ public class UserRoleController {
     public ResponseEntity<?> deleteUser(@PathVariable int id) throws ResponseStatusException {
         UserRole userRole = roleDB
             .findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "UserRole could not be found!"));
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "UserRole could not be found!")
+            );
 
         try {
             roleDB.delete(userRole);
             resetService.resetAutoCounter("user_role");
-            return new ResponseEntity<>(userRole, HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(
+                userRole,
+                HttpStatus.NO_CONTENT
+            );
         } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+            );
         } catch (DataIntegrityViolationException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+            );
         }
     }
 }

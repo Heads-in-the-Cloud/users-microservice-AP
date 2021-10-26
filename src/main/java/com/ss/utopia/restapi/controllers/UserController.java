@@ -23,27 +23,42 @@ public class UserController {
 
     @GetMapping(path="/{id}")
     public ResponseEntity<User> getUser(@PathVariable int id) throws ResponseStatusException {
-        return new ResponseEntity<User>(userDB
+        return new ResponseEntity<>(userDB
             .findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found!")),
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "User not found!")
+            ),
             HttpStatus.OK
         );
     }
 
     @GetMapping(path="/all")
     public ResponseEntity<Iterable<User>> getAllUsers() {
-        return new ResponseEntity<Iterable<User>>(userDB.findAll(), HttpStatus.OK);
+        return new ResponseEntity<>(
+            userDB.findAll(),
+            HttpStatus.OK
+        );
     }
 
     @PostMapping(path = "")
     public ResponseEntity<?> createUser(@RequestBody User user) {
         resetService.resetAutoCounter("user");
         try {
-            return new ResponseEntity<>(userDB.save(user), HttpStatus.CREATED);
+            return new ResponseEntity<>(
+                userDB.save(user),
+                HttpStatus.CREATED
+            );
         } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+            );
         } catch (DataIntegrityViolationException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+            );
         }
     }
 
@@ -51,7 +66,10 @@ public class UserController {
     public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody User userDetails) throws ResponseStatusException {
         User user = userDB
             .findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found!")
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "User not found!"
+            )
         );
 
         user.setUsername(userDetails.getUsername());
@@ -64,11 +82,20 @@ public class UserController {
 
         try {
             User updatedUser = userDB.save(user);
-            return new ResponseEntity<>(updatedUser, HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(
+                updatedUser,
+                HttpStatus.NO_CONTENT
+            );
         } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+            );
         } catch (DataIntegrityViolationException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+            );
         }
     }
 
@@ -76,16 +103,28 @@ public class UserController {
     public ResponseEntity<?> deleteUser(@PathVariable int id) throws ResponseStatusException {
         User user = userDB
             .findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User could not be found!"));
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "User could not be found!")
+            );
 
         try {
             userDB.delete(user);
             resetService.resetAutoCounter("user");
-            return new ResponseEntity<>(user, HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(
+                user,
+                HttpStatus.NO_CONTENT
+            );
         } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+            );
         } catch (DataIntegrityViolationException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+            );
         }
     }
 }
