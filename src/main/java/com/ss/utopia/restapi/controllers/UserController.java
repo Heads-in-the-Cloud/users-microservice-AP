@@ -33,7 +33,7 @@ public class UserController {
         );
     }
 
-    @GetMapping(path="/all")
+    @GetMapping(path={"/all", ""})
     public ResponseEntity<Iterable<User>> getAllUsers() {
         return new ResponseEntity<>(
             userDB.findAll(),

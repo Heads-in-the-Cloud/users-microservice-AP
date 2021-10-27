@@ -33,7 +33,7 @@ public class UserRoleController {
         );
     }
 
-    @GetMapping(path="/all")
+    @GetMapping(path={"/all", ""})
     public ResponseEntity<Iterable<UserRole>> getAllUsers() {
         return new ResponseEntity<Iterable<UserRole>>(roleDB.findAll(), HttpStatus.OK);
     }
