@@ -60,7 +60,7 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- <dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
@@ -74,7 +74,7 @@
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
             <version>3.4.1</version>
-        </dependency> -->
+        </dependency>
 	</dependencies>
 
 	<build>

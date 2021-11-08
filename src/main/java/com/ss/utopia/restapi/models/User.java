@@ -61,6 +61,8 @@ public class User {
     public UserRole getRole() { return role;}
     public void setRole(UserRole role) { this.role = role;}
 
+    public boolean isAdmin() { return getRole().getName().equals("ADMIN"); }
+
     @Override
     public String toString() {
         return getUsername() + ", " + getRole().getName();
