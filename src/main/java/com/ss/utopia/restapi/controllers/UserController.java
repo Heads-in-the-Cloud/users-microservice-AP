@@ -30,6 +30,8 @@ public class UserController {
     @Autowired
     UserDetailsService userDetailsService;
 
+    private boolean isAdmin(User user) { return user.getRole().getName().equals("ADMIN"); }
+
     /**
      * Gets the user from the authorization header. Otherwise, throws an exception when not found.
      * @return
@@ -56,7 +58,7 @@ public class UserController {
                 "User not found!")
             );
 
-        if (requestUser.isAdmin() || (requestUser.getId() == id)) {
+        if (isAdmin(requestUser) || (requestUser.getId() == id)) {
             return new ResponseEntity<User>(user, HttpStatus.OK);
         }
 
@@ -75,7 +77,7 @@ public class UserController {
     @GetMapping(path={"/all", ""})
     public ResponseEntity<Iterable<User>> getAllUsers() {
         User requestUser = getUserFromAuthHeader();
-        if (!requestUser.isAdmin()) {
+        if (!isAdmin(requestUser)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not allowed to see other users information!");
         }
 
@@ -94,7 +96,7 @@ public class UserController {
             System.out.println("Before Encode!");
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             System.out.println("After Encode!");
-            return new ResponseEntity<>(
+            return new ResponseEntity<User>(
                 userDB.save(user),
                 HttpStatus.CREATED
             );
@@ -114,7 +116,7 @@ public class UserController {
     @PutMapping(path="/{id}")
     public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody User userDetails) throws ResponseStatusException {
         User requestUser = getUserFromAuthHeader();
-        if (!requestUser.isAdmin() && requestUser.getId() != id) {
+        if (!isAdmin(requestUser) && requestUser.getId() != id) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not allowed to update this user!");
         }
 
@@ -126,13 +128,13 @@ public class UserController {
             )
         );
 
-        user.setUsername(userDetails.getUsername());
-        user.setRole(userDetails.getRole());
-        user.setPhone(userDetails.getPhone());
-        user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
-        user.setGivenName(userDetails.getGivenName());
-        user.setFamilyName(userDetails.getFamilyName());
-        user.setEmail(userDetails.getEmail());
+        if (userDetails.getUsername() != null) user.setUsername(userDetails.getUsername());
+        if (userDetails.getRole() != null) user.setRole(userDetails.getRole());
+        if (userDetails.getPhone() != null) user.setPhone(userDetails.getPhone());
+        if (userDetails.getPassword() != null) user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+        if (userDetails.getGivenName() != null) user.setGivenName(userDetails.getGivenName());
+        if (userDetails.getFamilyName() != null) user.setFamilyName(userDetails.getFamilyName());
+        if (userDetails.getEmail() != null) user.setEmail(userDetails.getEmail());
 
         try {
             User updatedUser = userDB.save(user);
@@ -156,7 +158,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable int id) throws ResponseStatusException {
         User requestUser = getUserFromAuthHeader();
-        if (!requestUser.isAdmin() && requestUser.getId() != id) {
+        if (!isAdmin(requestUser) && requestUser.getId() != id) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not allowed to delete this user!");
         }
 

@@ -69,7 +69,7 @@ public class UserRoleController {
             )
         );
 
-        userRole.setName(roleDetails.getName());
+        if (roleDetails.getName() != null) userRole.setName(roleDetails.getName());
 
         try {
             UserRole updatedUser = roleDB.save(userRole);
