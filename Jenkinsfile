@@ -7,7 +7,7 @@ pipeline {
     stages {
         stage('GitHub Fetch') { steps{
             echo(message: 'GitHub Fetch!')
-            git(branch: 'dev', url: 'git@github.com:Heads-in-the-Cloud/users-microservice-AP.git')
+            git(branch: 'dev', url: 'https://github.com/Heads-in-the-Cloud/users-microservice-AP.git')
         }}
         stage('Tests') { steps{
             echo(message: 'Testing!')
