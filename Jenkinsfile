@@ -12,6 +12,7 @@ pipeline {
         stage('Tests') { steps{
             echo(message: 'Testing!')
             echo(message: 'Some change!')
+            echo(message: 'Another change!')
         }}
         stage('Build') { steps{
             echo(message: 'Building!')
