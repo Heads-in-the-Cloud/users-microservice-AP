@@ -2,6 +2,7 @@
 
 pipeline {
     agent any
+    tools { maven "M3" }
 
     environment {
         AWS = credentials('AWS-Key')
@@ -24,15 +25,16 @@ pipeline {
         stage('Build') { steps{
             echo(message: 'Building!')
             sh(script: 'mvn clean package')
-            image = docker.build "ap-users:latest"
+            script { image = docker.build("ap-users:latest") }
         }}
         stage('Archive artifacts and Deployment') { steps{
             echo(message: 'Deploying!')
             archiveArtifacts(artifacts: 'target/*.jar')
 
-            docker.withRegistry(users_repo, "ecr:us-east-2:AWS-Key") {
-                docker.image("latest").push()
-            }
+            script{
+            docker.withRegistry("https://" + users_repo, "ecr:us-east-2:AWS-Key") {
+                docker.image("ap-users:latest").push()
+            }}
         }}
     }
 }
