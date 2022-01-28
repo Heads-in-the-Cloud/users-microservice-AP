@@ -44,8 +44,7 @@ pipeline {
             // Run docker compose up
             echo(message: 'ECS Deploy!')
             build(job: 'ECSDeploy', propagate: true, parameters: [
-                booleanParam(name: 'Deploy', value: true ),
-                string( name: 'Services', value: 'users' )
+                booleanParam(name: 'Deploy', value: true )
             ])
 
             // Run EKSctl control update pods
