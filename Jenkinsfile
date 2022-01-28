@@ -6,8 +6,11 @@ pipeline {
 
     environment {
         AWS = credentials('AWS-Key')
+        AWS_REGION = credentials('AWS-Region')
+        SECRET_URL = credentials('AWS-Services-Secret')
+        COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse --short=8 HEAD").trim()
 
-        def aws_script = "aws secretsmanager get-secret-value --secret-id prod/Angel/Secrets --region us-east-2"
+        def aws_script = "aws secretsmanager get-secret-value --secret-id $SECRET_URL --region $AWS_REGION"
         def output = sh(returnStdout: true, script: aws_script)
         def repos = readJSON(text: readJSON(text: output).SecretString)
 
@@ -25,16 +28,36 @@ pipeline {
         stage('Build') { steps{
             echo(message: 'Building!')
             sh(script: 'mvn clean package')
-            script { image = docker.build("ap-users:latest") }
+            script { image = docker.build("ap-users:$COMMIT_HASH") }
         }}
-        stage('Archive artifacts and Deployment') { steps{
-            echo(message: 'Deploying!')
-            archiveArtifacts(artifacts: 'target/*.jar')
-
+        stage('ECR Push') { steps{
+            echo(message: 'Pushing!')
             script{
-            docker.withRegistry("https://" + users_repo, "ecr:us-east-2:AWS-Key") {
-                docker.image("ap-users:latest").push()
+            docker.withRegistry("https://" + users_repo, "ecr:$AWS_REGION:AWS-Key") {
+                docker.image("ap-users:$COMMIT_HASH").push()
+                docker.image("ap-users:$COMMIT_HASH").push("latest")
             }}
         }}
+        stage('Service Deployment') { steps{
+            echo(message: 'Deploying!')
+
+            // Run docker compose up
+            echo(message: 'ECS Deploy!')
+            build(job: 'ECSDeploy', propagate: true, parameters: [
+                booleanParam(name: 'Deploy', value: true )
+                choice( name: 'Services', value: 'users' )
+            ])
+
+            // Run EKSctl control update pods
+            echo(message: 'EKS Deploy!')
+            //
+
+            // Deploy CloudFormation templates update
+            echo(message: 'CloudFormation Deploy!')
+            //
+        }}
     }
+    post { always {
+        sh(script: 'docker image prune -f -a')
+    }}
 }
