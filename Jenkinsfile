@@ -44,7 +44,7 @@ pipeline {
             // Run docker compose up
             echo(message: 'ECS Deploy!')
             build(job: 'ECSDeploy', propagate: true, parameters: [
-                booleanParam(name: 'Deploy', value: true )
+                booleanParam(name: 'Deploy', value: true ),
                 choice( name: 'Services', value: 'users' )
             ])
 
