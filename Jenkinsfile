@@ -45,7 +45,7 @@ pipeline {
             echo(message: 'ECS Deploy!')
             build(job: 'ECSDeploy', propagate: true, parameters: [
                 booleanParam(name: 'Deploy', value: true ),
-                choice( name: 'Services', value: 'users' )
+                string( name: 'Services', value: 'users' )
             ])
 
             // Run EKSctl control update pods
