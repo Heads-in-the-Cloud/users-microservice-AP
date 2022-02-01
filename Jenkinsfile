@@ -54,6 +54,7 @@ pipeline {
                 string( name: 'Service', value: 'users' )
             ])
 
+
             // Deploy CloudFormation templates update
             echo(message: 'CloudFormation Deploy!')
             //
