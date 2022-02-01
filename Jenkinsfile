@@ -41,7 +41,6 @@ pipeline {
         stage('Service Deployment') { steps{
             echo(message: 'Deploying!')
 
-
             // Run docker compose up
             echo(message: 'ECS Deploy!')
             // build(job: 'ECSDeploy', propagate: true, parameters: [
