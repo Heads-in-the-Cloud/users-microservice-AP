@@ -15,6 +15,9 @@ pipeline {
         def repos = readJSON(text: readJSON(text: output).SecretString)
 
         users_repo = repos["AP-Users-Repo"].toString()
+
+        ARTIFACTORY_REPO = "aspms-users"
+        ARTIFACTORY_PROJECT = "AP Microservices"
     }
 
     stages {
@@ -33,6 +36,14 @@ pipeline {
             echo(message: 'Building!')
             sh(script: 'mvn clean package')
             script { image = docker.build("ap-users:$COMMIT_HASH") }
+        }}
+        stage('Push to Artifactory') { steps{
+            echo(message: 'Deploying!')
+            rtUpload(
+                serverId: 'ap-jfrog-artifactory',
+                spec: '{"files": [{ "pattern": "target/*.jar", "target": "$ARTIFACTORY_REPO/" }]}',
+                project: "$ARTIFACTORY_PROJECT"
+            )
         }}
         stage('ECR Push') { steps{
             echo(message: 'Pushing!')
