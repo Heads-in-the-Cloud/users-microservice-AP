@@ -49,7 +49,7 @@ pipeline {
         stage('ECR Push') { steps{
             echo(message: 'Pushing!')
             script{
-            docker.withRegistry("http://" + users_repo, docker_login) {
+            docker.withRegistry("https://" + users_repo, docker_login) {
                 docker.image("ap-users:$COMMIT_HASH").push()
                 docker.image("ap-users:$COMMIT_HASH").push("latest")
             }}
