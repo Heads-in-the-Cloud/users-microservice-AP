@@ -14,10 +14,10 @@ pipeline {
         def output = sh(returnStdout: true, script: aws_script)
         def repos = readJSON(text: readJSON(text: output).SecretString)
 
+        repo_host = repos["AP-Repo-Host"].toString()
         users_repo = repos["AP-Users-Repo"].toString()
         docker_login = repos["AP-Docker-Login"].toString()
 
-        ARTIFACTORY_REPO = "aspms-users"
         ARTIFACTORY_PROJECT = "AP Microservices"
     }
 
@@ -36,22 +36,22 @@ pipeline {
         stage('Build') { steps{
             echo(message: 'Building!')
             sh(script: 'mvn clean package')
-            script { image = docker.build("ap-users:$COMMIT_HASH") }
+            script { image = docker.build("$users_repo:$COMMIT_HASH") }
         }}
         stage('Push to Artifactory') { steps{
             echo(message: 'Deploying!')
             rtUpload(
                 serverId: 'ap-jfrog-artifactory',
-                spec: '{"files": [{ "pattern": "target/*.jar", "target": "$ARTIFACTORY_REPO/" }]}',
+                spec: '{"files": [{ "pattern": "target/*.jar", "target": "$users_repo/" }]}',
                 project: "$ARTIFACTORY_PROJECT"
             )
         }}
         stage('ECR Push') { steps{
             echo(message: 'Pushing!')
             script{
-            docker.withRegistry("https://" + users_repo, docker_login) {
-                docker.image("ap-users:$COMMIT_HASH").push()
-                docker.image("ap-users:$COMMIT_HASH").push("latest")
+            docker.withRegistry("https://$repo_host", docker_login) {
+                docker.image("$users_repo:$COMMIT_HASH").push()
+                docker.image("$users_repo:$COMMIT_HASH").push("latest")
             }}
         }}
         stage('Service Deployment') { steps{
