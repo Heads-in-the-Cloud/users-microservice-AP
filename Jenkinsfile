@@ -15,7 +15,7 @@ pipeline {
         def repos = readJSON(text: readJSON(text: output).SecretString)
 
         users_repo = repos["AP-Users-Repo"].toString()
-        docker_login = repos["AP-Docker-Login"]
+        docker_login = repos["AP-Docker-Login"].toString()
 
         ARTIFACTORY_REPO = "aspms-users"
         ARTIFACTORY_PROJECT = "AP Microservices"
