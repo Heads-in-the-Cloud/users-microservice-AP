@@ -15,6 +15,7 @@ pipeline {
         def repos = readJSON(text: readJSON(text: output).SecretString)
 
         users_repo = repos["AP-Users-Repo"].toString()
+        docker_login = repos["AP-Docker-Login"]
 
         ARTIFACTORY_REPO = "aspms-users"
         ARTIFACTORY_PROJECT = "AP Microservices"
@@ -48,7 +49,7 @@ pipeline {
         stage('ECR Push') { steps{
             echo(message: 'Pushing!')
             script{
-            docker.withRegistry("https://" + users_repo, "ecr:$AWS_REGION:AWS-Key") {
+            docker.withRegistry("https://" + users_repo, docker_login) {
                 docker.image("ap-users:$COMMIT_HASH").push()
                 docker.image("ap-users:$COMMIT_HASH").push("latest")
             }}
