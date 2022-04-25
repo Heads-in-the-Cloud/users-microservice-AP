@@ -32,6 +32,10 @@ pipeline {
             withSonarQubeEnv(installationName: 'SonarQube') {
                 sh(script: 'mvn clean verify sonar:sonar -Dsonar.projectKey=Users')
             }}
+
+            timeout(time: 1, unit: 'HOURS') {
+                waitForQualityGate(abortPipeline: true)
+            }
         }}
         stage('Build') { steps{
             echo(message: 'Building!')
