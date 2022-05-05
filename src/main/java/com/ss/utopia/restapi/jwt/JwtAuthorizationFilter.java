@@ -34,7 +34,6 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             throws IOException, ServletException {
 
         String header = request.getHeader(JwtProperties.HEADER_STRING);
-        System.out.println("Header: " + header);
 
         if (header != null && header.startsWith(JwtProperties.TOKEN_PREFIX)) {
             Authentication authentication = getUsernamePasswordAuthentication(request);

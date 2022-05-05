@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ss.utopia.restapi.models.LoginInfo;
 import com.ss.utopia.restapi.models.UserPrincipal;
 
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -33,26 +34,21 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
      */
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-
-        System.out.println("-- Login Attempt --");
-
         LoginInfo credentials = null;
         try {
             credentials = new ObjectMapper().readValue(request.getInputStream(), LoginInfo.class);
+
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                credentials.getUsername(),
+                credentials.getPassword(),
+                new ArrayList<>()
+            );
+
+            Authentication auth = authenticationManager.authenticate(authenticationToken);
+            return auth;
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new AuthenticationCredentialsNotFoundException(e.getMessage());
         }
-
-        System.out.printf("Username: %s, Password: %s\n", credentials.getUsername(), credentials.getPassword());
-
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-            credentials.getUsername(),
-            credentials.getPassword(),
-            new ArrayList<>()
-        );
-
-        Authentication auth = authenticationManager.authenticate(authenticationToken);
-        return auth;
     }
 
     @Override

@@ -59,19 +59,10 @@ public class UserController {
             );
 
         if (isAdmin(requestUser) || (requestUser.getId() == id)) {
-            return new ResponseEntity<User>(user, HttpStatus.OK);
+            return new ResponseEntity<>(user, HttpStatus.OK);
         }
 
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not allowed to see this user!");
-
-        // return new ResponseEntity<>(userDB
-        //     .findById(id)
-        //     .orElseThrow(() -> new ResponseStatusException(
-        //         HttpStatus.BAD_REQUEST,
-        //         "User not found!")
-        //     ),
-        //     HttpStatus.OK
-        // );
     }
 
     @GetMapping(path={"/all", ""})
@@ -88,24 +79,15 @@ public class UserController {
     }
 
     @PostMapping(path = "")
-    public ResponseEntity<?> createUser(@RequestBody User user) {
-        System.out.println("Creating user!");
-
+    public ResponseEntity<User> createUser(@RequestBody User user) {
         resetService.resetAutoCounter("user");
         try {
-            System.out.println("Before Encode!");
             user.setPassword(passwordEncoder.encode(user.getPassword()));
-            System.out.println("After Encode!");
-            return new ResponseEntity<User>(
+            return new ResponseEntity<>(
                 userDB.save(user),
                 HttpStatus.CREATED
             );
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                e.getMessage()
-            );
-        } catch (DataIntegrityViolationException e) {
+        } catch (IllegalArgumentException | DataIntegrityViolationException e) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 e.getMessage()
@@ -114,10 +96,10 @@ public class UserController {
     }
 
     @PutMapping(path="/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody User userDetails) throws ResponseStatusException {
+    public ResponseEntity<User> updateUser(@PathVariable int id, @RequestBody User userDetails) throws ResponseStatusException {
         User requestUser = getUserFromAuthHeader();
         if (!isAdmin(requestUser) && requestUser.getId() != id) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not allowed to update this user!");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to update this user!");
         }
 
         User user = userDB
@@ -142,12 +124,7 @@ public class UserController {
                 updatedUser,
                 HttpStatus.NO_CONTENT
             );
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                e.getMessage()
-            );
-        } catch (DataIntegrityViolationException e) {
+        } catch (IllegalArgumentException | DataIntegrityViolationException e) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 e.getMessage()
@@ -156,7 +133,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable int id) throws ResponseStatusException {
+    public ResponseEntity<User> deleteUser(@PathVariable int id) throws ResponseStatusException {
         User requestUser = getUserFromAuthHeader();
         if (!isAdmin(requestUser) && requestUser.getId() != id) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not allowed to delete this user!");
@@ -176,12 +153,7 @@ public class UserController {
                 user,
                 HttpStatus.NO_CONTENT
             );
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                e.getMessage()
-            );
-        } catch (DataIntegrityViolationException e) {
+        } catch (IllegalArgumentException | DataIntegrityViolationException e) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 e.getMessage()

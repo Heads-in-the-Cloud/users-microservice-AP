@@ -13,6 +13,8 @@ public class ResetAutoCounterService {
 
     @Transactional
     public void resetAutoCounter(String tableName) {
-        em.createNativeQuery("ALTER TABLE " + tableName + " AUTO_INCREMENT = 1").executeUpdate();
+        em.createNativeQuery("ALTER TABLE ? AUTO_INCREMENT = 1")
+            .setParameter(1, tableName)
+            .executeUpdate();
     }
 }

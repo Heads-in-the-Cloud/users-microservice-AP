@@ -22,8 +22,8 @@ public class UserRoleController {
     ResetAutoCounterService resetService;
 
     @GetMapping(path="/{id}")
-    public ResponseEntity<UserRole> getUser(@PathVariable int id) throws ResponseStatusException {
-        return new ResponseEntity<UserRole>(roleDB
+    public ResponseEntity<UserRole> getRole(@PathVariable int id) throws ResponseStatusException {
+        return new ResponseEntity<>(roleDB
             .findById(id)
             .orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
@@ -34,65 +34,28 @@ public class UserRoleController {
     }
 
     @GetMapping(path={"/all", ""})
-    public ResponseEntity<Iterable<UserRole>> getAllUsers() {
-        return new ResponseEntity<Iterable<UserRole>>(roleDB.findAll(), HttpStatus.OK);
+    public ResponseEntity<Iterable<UserRole>> getAllRoles() {
+        return new ResponseEntity<>(roleDB.findAll(), HttpStatus.OK);
     }
 
     @PostMapping(path = "")
-    public ResponseEntity<?> createUser(@RequestBody UserRole UserRole) {
+    public ResponseEntity<?> createRole(@RequestBody UserRole userRole) {
         resetService.resetAutoCounter("user_role");
         try {
             return new ResponseEntity<>(
-                roleDB.save(UserRole),
-                HttpStatus.OK
+                roleDB.save(userRole),
+                HttpStatus.CREATED
             );
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                e.getMessage()
-            );
-        } catch (DataIntegrityViolationException e) {
+        } catch (IllegalArgumentException | DataIntegrityViolationException e) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 e.getMessage()
             );
         }
-    }
-
-    @PutMapping(path="/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody UserRole roleDetails) throws ResponseStatusException {
-        UserRole userRole = roleDB
-            .findById(id)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "UserRole not found!"
-            )
-        );
-
-        if (roleDetails.getName() != null) userRole.setName(roleDetails.getName());
-
-        try {
-            UserRole updatedUser = roleDB.save(userRole);
-            return new ResponseEntity<>(
-                updatedUser,
-                HttpStatus.NO_CONTENT
-            );
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                e.getMessage()
-            );
-        } catch (DataIntegrityViolationException e) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                e.getMessage()
-            );
-        }
-
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable int id) throws ResponseStatusException {
+    public ResponseEntity<?> deleteRole(@PathVariable int id) throws ResponseStatusException {
         UserRole userRole = roleDB
             .findById(id)
             .orElseThrow(() -> new ResponseStatusException(
@@ -107,12 +70,7 @@ public class UserRoleController {
                 userRole,
                 HttpStatus.NO_CONTENT
             );
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                e.getMessage()
-            );
-        } catch (DataIntegrityViolationException e) {
+        } catch (IllegalArgumentException | DataIntegrityViolationException e) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 e.getMessage()

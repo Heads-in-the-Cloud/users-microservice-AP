@@ -37,6 +37,19 @@ public class User {
     @Column(name="phone", unique = true)
     private String phone;
 
+    public User(Integer id, UserRole role, String givenName, String familyName, String username, String email, String password, String phone) {
+        this.id = id;
+        this.role = role;
+        this.givenName = givenName;
+        this.familyName = familyName;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.phone = phone;
+    }
+
+    public User() {}
+
     public Integer getId() { return id;}
     public void setId(Integer id) { this.id = id;}
 
@@ -60,8 +73,6 @@ public class User {
 
     public UserRole getRole() { return role;}
     public void setRole(UserRole role) { this.role = role;}
-
-    // public boolean isAdmin() { return getRole().getName().equals("ADMIN"); }
 
     @Override
     public String toString() {
