@@ -76,6 +76,6 @@ public class User {
 
     @Override
     public String toString() {
-        return getUsername() + ", " + getRole().getName();
+        return "username: " + getUsername() + ", role: " + getRole();
     }
 }

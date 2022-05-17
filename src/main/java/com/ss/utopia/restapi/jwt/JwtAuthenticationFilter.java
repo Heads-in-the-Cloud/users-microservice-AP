@@ -20,10 +20,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     private AuthenticationManager authenticationManager;
+
+    Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
@@ -35,6 +40,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         LoginInfo credentials = null;
+
         try {
             credentials = new ObjectMapper().readValue(request.getInputStream(), LoginInfo.class);
 
@@ -44,10 +50,16 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 new ArrayList<>()
             );
 
+            logger.info("Login Attempt with username: " + authenticationToken.getName());
+
             Authentication auth = authenticationManager.authenticate(authenticationToken);
             return auth;
         } catch (IOException e) {
+            logger.warn("Login attempt failed with error: " + e.getMessage());
             throw new AuthenticationCredentialsNotFoundException(e.getMessage());
+        } catch (AuthenticationException e) {
+            logger.warn("Authentication Failed: " + e.getMessage());
+            throw e;
         }
     }
 

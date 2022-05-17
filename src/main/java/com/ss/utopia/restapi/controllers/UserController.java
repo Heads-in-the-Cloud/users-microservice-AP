@@ -14,6 +14,9 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.web.bind.annotation.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping(path="/users")
 public class UserController {
@@ -30,6 +33,8 @@ public class UserController {
     @Autowired
     UserDetailsService userDetailsService;
 
+    Logger logger = LoggerFactory.getLogger(UserController.class);
+
     private boolean isAdmin(User user) { return user.getRole().getName().equals("ADMIN"); }
 
     /**
@@ -38,37 +43,50 @@ public class UserController {
      * @throws ResponseStatusException
      */
     private User getUserFromAuthHeader() throws ResponseStatusException {
+        logger.info("Getting current user from Bearer Token.");
+
         return userDB
             .findByUsername(SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getPrincipal()
                 .toString()
-            ).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED)
+            ).orElseThrow(() -> {
+                logger.warn("User not found from JWT.");
+                return new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            }
         );
     }
 
     @GetMapping(path="/{id}")
     public ResponseEntity<User> getUser(@PathVariable int id) throws ResponseStatusException {
         User requestUser = getUserFromAuthHeader();
+        logger.info("Getting user with id of: " + id);
+
         User user = userDB
             .findById(id)
-            .orElseThrow(() -> new ResponseStatusException(
+            .orElseThrow(() -> {
+                logger.warn("User with id: " + id + ", not found.");
+                return new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
-                "User not found!")
+                "User not found!");}
             );
 
         if (isAdmin(requestUser) || (requestUser.getId() == id)) {
             return new ResponseEntity<>(user, HttpStatus.OK);
         }
 
+        logger.warn("Attempt was made to get user of id: " + id + " without proper authorization.");
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not allowed to see this user!");
     }
 
     @GetMapping(path={"/all", ""})
     public ResponseEntity<Iterable<User>> getAllUsers() {
         User requestUser = getUserFromAuthHeader();
+        logger.info("Getting all users.");
+
         if (!isAdmin(requestUser)) {
+            logger.warn("Not allowed to see other users information!");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not allowed to see other users information!");
         }
 
@@ -80,6 +98,8 @@ public class UserController {
 
     @PostMapping(path = "")
     public ResponseEntity<User> createUser(@RequestBody User user) {
+        logger.info("Creating user with: " + user.toString());
+
         resetService.resetAutoCounter("user");
         try {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -88,6 +108,7 @@ public class UserController {
                 HttpStatus.CREATED
             );
         } catch (IllegalArgumentException | DataIntegrityViolationException e) {
+            logger.warn(e.getMessage());
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 e.getMessage()
@@ -98,7 +119,10 @@ public class UserController {
     @PutMapping(path="/{id}")
     public ResponseEntity<User> updateUser(@PathVariable int id, @RequestBody User userDetails) throws ResponseStatusException {
         User requestUser = getUserFromAuthHeader();
+        logger.info("Updating user with id " + id + " with: " + userDetails.toString());
+
         if (!isAdmin(requestUser) && requestUser.getId() != id) {
+            logger.warn("Not allowed to delete this user!");
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to update this user!");
         }
 
@@ -125,6 +149,7 @@ public class UserController {
                 HttpStatus.NO_CONTENT
             );
         } catch (IllegalArgumentException | DataIntegrityViolationException e) {
+            logger.warn(e.getMessage());
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 e.getMessage()
@@ -135,7 +160,10 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<User> deleteUser(@PathVariable int id) throws ResponseStatusException {
         User requestUser = getUserFromAuthHeader();
+        logger.info("Deleting user with ID: " + id);
+
         if (!isAdmin(requestUser) && requestUser.getId() != id) {
+            logger.warn("Not allowed to delete this user!");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not allowed to delete this user!");
         }
 
@@ -154,6 +182,7 @@ public class UserController {
                 HttpStatus.NO_CONTENT
             );
         } catch (IllegalArgumentException | DataIntegrityViolationException e) {
+            logger.warn(e.getMessage());
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 e.getMessage()
